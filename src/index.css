@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   المسار المتحد للخدمات السياحية
+   لوحة الألوان الرسمية مسحوبة من الشعار:
+     #082B31 بترولي عميق · #1C786B تركوازي · #C0BAA4 رملي مطفي
+   القيم هنا بصيغة «R G B» ليعمل معها <alpha-value> في Tailwind.
+
+   قيد هندسي ملزم: لا خط عمودي يعبر خطاً أفقياً في أي عنصر.
+   كل الخطوط إما متوازية أو منحنية — كما في الشعار نفسه.
+   ============================================================ */
+
+@layer base {
+  :root {
+    /* الوضع الفاتح */
+    --c-canvas: 227 234 230;
+    --c-canvas-warm: 240 237 228;
+    --c-panel: 243 247 244;
+    --c-panel-2: 217 227 222;
+    --c-ink: 8 43 49;
+    --c-ink-2: 59 101 102;
+    --c-accent: 28 120 107;
+    --c-accent-deep: 10 92 79;
+    --c-accent-muted: 188 211 204;
+    --c-sand: 192 186 164;
+    --c-sand-deep: 150 142 118;
+    --c-hairline: 194 210 204;
+    --c-border-strong: 147 175 169;
+    --c-on-accent: 255 255 255;
+  }
+
+  /* الوضع الداكن الافتراضي للنظام، ما لم يختر المستخدم الفاتح صراحةً */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --c-canvas: 10 33 38;
+      --c-canvas-warm: 19 43 44;
+      --c-panel: 15 46 52;
+      --c-panel-2: 20 56 64;
+      --c-ink: 227 234 230;
+      --c-ink-2: 159 184 182;
+      --c-accent: 47 168 147;
+      --c-accent-deep: 67 191 168;
+      --c-accent-muted: 30 79 81;
+      --c-sand: 201 195 175;
+      --c-sand-deep: 176 168 144;
+      --c-hairline: 28 66 73;
+      --c-border-strong: 62 107 110;
+      --c-on-accent: 4 25 28;
+    }
+  }
+
+  /* الاختيار الصريح يفوق تفضيل النظام في الاتجاهين */
+  :root[data-theme="dark"] {
+    --c-canvas: 10 33 38;
+    --c-canvas-warm: 19 43 44;
+    --c-panel: 15 46 52;
+    --c-panel-2: 20 56 64;
+    --c-ink: 227 234 230;
+    --c-ink-2: 159 184 182;
+    --c-accent: 47 168 147;
+    --c-accent-deep: 67 191 168;
+    --c-accent-muted: 30 79 81;
+    --c-sand: 201 195 175;
+    --c-sand-deep: 176 168 144;
+    --c-hairline: 28 66 73;
+    --c-border-strong: 62 107 110;
+    --c-on-accent: 4 25 28;
+  }
+
+  html {
+    direction: rtl;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    /* الترويسة ثابتة، فالروابط الداخلية تحتاج هامشاً علوياً عند القفز */
+    scroll-padding-top: 5.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+    }
+  }
+
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    background-color: rgb(var(--c-canvas));
+    color: rgb(var(--c-ink));
+    font-family: theme("fontFamily.body");
+    font-size: clamp(1rem, 1.05vw, 1.1rem);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ريم كوفي يضبط الكلمات متقاربة في المقاسات الكبيرة، فتفتحها مسافة كلمات طفيفة.
+     مسافة الكلمات آمنة في العربية — بخلاف مسافة الحروف التي تكسر الوصل. */
+  h1, h2, h3 {
+    font-family: theme("fontFamily.display");
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    word-spacing: .07em;
+    margin: 0;
+  }
+
+  p { margin: 0; }
+  img, svg, video { display: block; max-width: 100%; }
+  ::selection { background: rgb(var(--c-accent)); color: rgb(var(--c-on-accent)); }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-accent));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* قفل التمرير أثناء فتح الدرج — الصيغة الوحيدة الصامدة على iOS Safari.
+     overflow:hidden وحده لا يمسك الصفحة هناك. */
+  body[data-scroll-locked="true"] {
+    position: fixed;
+    inset-inline: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: theme("maxWidth.shell");
+    margin-inline: auto;
+    padding-inline: clamp(1.15rem, 4vw, 4.5rem);
+  }
+
+  .eyebrow {
+    font-family: theme("fontFamily.mono");
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgb(var(--c-accent));
+  }
+
+  /* الخط الفاصل: منحنٍ لا متقاطع — التزاماً بقيد الشعار */
+  .rule-curve {
+    display: block;
+    width: 100%;
+    height: 18px;
+    color: rgb(var(--c-sand));
+    opacity: .55;
+  }
+}
+
+/* الظهور التدريجي عند التمرير */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .8s cubic-bezier(.22,.61,.36,1),
+              transform .8s cubic-bezier(.22,.61,.36,1);
+}
+.reveal.is-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+}
