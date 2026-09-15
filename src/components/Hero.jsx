@@ -12,14 +12,19 @@ export default function Hero() {
   const videoRef = useRef(null);
   const requestedMode = useHeroMode();
   // الخطّاف قد يخفض الوضع من «سحب» إلى «حلقي» إن تبيّن أن المصدر غير قابل للسعي
-  const { ready, failed, mode } = useHeroVideo({
+  const { ready, failed, playing, needsGesture, playByGesture, mode } = useHeroVideo({
     videoRef,
     sectionRef,
     mode: requestedMode,
   });
 
   const isScrub = mode === "scrub";
+  // العنصر يبقى في الشجرة ما لم يقع خطأ وسائط حقيقي — رفض play() لا يزيله،
+  // وإلا استحال على أي محاولة لاحقة أن تنجح.
   const showVideo = mode !== "static" && !failed;
+  // في الوضع الحلقي لا نكشف الفيديو إلا وهو يتحرك فعلاً؛ الإطار الساكن
+  // المكشوف هو ما بدا للمستخدم «فيديو بلا حركة».
+  const videoVisible = isScrub ? ready : playing;
 
   const goToServices = (e) => {
     e.preventDefault();
@@ -74,9 +79,31 @@ export default function Hero() {
             className={[
               "absolute inset-0 h-full w-full scale-105 object-cover",
               "transition-opacity duration-700 ease-e1",
-              ready ? "opacity-100" : "opacity-0",
+              videoVisible ? "opacity-100" : "opacity-0",
             ].join(" ")}
           />
+        )}
+
+        {/* التشغيل التلقائي ممنوع (وضع توفير الطاقة على iOS، أو إطار مضمّن
+            لا يسمح به). بدل إطار ميت لا يفسّر نفسه، نعرض زراً صريحاً. */}
+        {needsGesture && !failed && (
+          <button
+            type="button"
+            onClick={playByGesture}
+            className="absolute inset-0 z-[3] flex items-center justify-center bg-brand-ink/25 transition-colors hover:bg-brand-ink/35"
+          >
+            <span className="inline-flex items-center gap-3 rounded-full bg-accent/95 px-6 py-3.5 text-[1rem] font-semibold text-on-accent shadow-lift backdrop-blur-sm">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="h-5 w-5 flex-none"
+                fill="currentColor"
+              >
+                <path d="M8.6 5.4a1 1 0 0 1 1.52-.85l7.2 4.45a1.4 1.4 0 0 1 0 2.38l-7.2 4.45A1 1 0 0 1 8.6 15Z" />
+              </svg>
+              {HERO.playVideo}
+            </span>
+          </button>
         )}
 
         {/* حجاب التدرّج — يضمن قراءة النص فوق أي إطار من الفيديو */}

@@ -198,9 +198,13 @@ export default function Header() {
           "supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150",
           "transition-[background-color,border-color,padding] duration-500 ease-e1",
           "border-b",
-          solid
-            ? "border-hairline bg-canvas/95 py-2"
-            : "border-transparent bg-canvas/75 py-3",
+          // أثناء فتح الدرج تصير الترويسة معتمة، فتُقرأ مع الدرج كلوحٍ واحد
+          // بدل أن يظهر الدرج من خلفها الشفافة
+          isOpen
+            ? "border-hairline bg-panel py-3"
+            : solid
+              ? "border-hairline bg-canvas/95 py-2"
+              : "border-transparent bg-canvas/75 py-3",
         ].join(" ")}
       >
         <div className="shell flex items-center gap-4">
@@ -268,23 +272,24 @@ export default function Header() {
             aria-label={isOpen ? A11Y.closeMenu : A11Y.openMenu}
             className="rounded-xl p-2 text-ink transition-colors hover:bg-accent/10 lg:hidden"
           >
-            <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" fill="currentColor">
-              <rect
-                x="4" y="7" width="18" height="2" rx="1"
-                className="origin-center transition-transform duration-300 ease-e1"
-                style={{ transform: isOpen ? "translateY(5px)" : "none" }}
-              />
-              <rect
-                x="4" y="12" width="18" height="2" rx="1"
-                className="transition-opacity duration-200"
-                style={{ opacity: isOpen ? 0 : 1 }}
-              />
-              <rect
-                x="4" y="17" width="18" height="2" rx="1"
-                className="origin-center transition-transform duration-300 ease-e1"
-                style={{ transform: isOpen ? "translateY(-5px)" : "none" }}
-              />
-            </svg>
+            {/* قيد الهوية يمنع الأشكال المتصالبة، فعلامة الإغلاق ليست ✕
+                بل سهم منحنٍ صاعد — هو نفسه رمز زر «أغلق القائمة» داخل الدرج،
+                فيقرأ المستخدم الحالتين كشيء واحد. */}
+            {isOpen ? (
+              <svg
+                width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+              >
+                <path d="M5 15.5C8 10.5 16 10.5 19 15.5" />
+                <path d="M8.5 9.2 12 5.8l3.5 3.4" />
+              </svg>
+            ) : (
+              <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" fill="currentColor">
+                <rect x="4" y="7" width="18" height="2" rx="1" />
+                <rect x="4" y="12" width="18" height="2" rx="1" />
+                <rect x="4" y="17" width="18" height="2" rx="1" />
+              </svg>
+            )}
           </button>
         </div>
       </header>
@@ -318,6 +323,34 @@ export default function Header() {
         ].join(" ")}
         style={{ visibility: isOpen ? "visible" : "hidden" }}
       >
+        {/* خيار إغلاق ظاهر ومُسمّى. زر القائمة في الترويسة يغلق أيضاً،
+            لكن المستخدم يحتاج أن يرى المخرج لا أن يستنتجه. */}
+        <div className="mb-2 flex justify-start border-b border-hairline pb-3">
+          <button
+            type="button"
+            onClick={() => {
+              close();
+              toggleRef.current?.focus();
+            }}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-[.95rem] font-semibold text-ink-2 transition-colors hover:bg-accent/10 hover:text-ink"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="h-5 w-5 flex-none"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.9"
+              strokeLinecap="round"
+            >
+              {/* خطان مائلان متقاطعان ممنوعان بقيد الهوية، فالإغلاق سهمٌ منحنٍ للأعلى */}
+              <path d="M5 15.5C8 10.5 16 10.5 19 15.5" />
+              <path d="M8.5 9.2 12 5.8l3.5 3.4" />
+            </svg>
+            {A11Y.closeMenu}
+          </button>
+        </div>
+
         <nav aria-label={A11Y.mainNav} className="flex flex-col gap-1">
           {NAV.map((item) => (
             <a

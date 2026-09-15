@@ -57,6 +57,10 @@ export default function useHeroVideo({ videoRef, sectionRef, mode }) {
   const [progress, setProgress] = useState(0);
   const [durationUsable, setDurationUsable] = useState(true);
   const [scrubBroken, setScrubBroken] = useState(false);
+  // حركة فعلية مؤكدة — حدث playing، لا مجرد canplay
+  const [playing, setPlaying] = useState(false);
+  // المتصفح رفض التشغيل التلقائي: نحتاج إيماءة من المستخدم
+  const [needsGesture, setNeedsGesture] = useState(false);
 
   // مزلاج السعي وحارسه — يعيشان خارج دورة الرسم
   const seekBusy = useRef(false);
@@ -123,21 +127,39 @@ export default function useHeroVideo({ videoRef, sectionRef, mode }) {
     v.loop = true;
 
     let cancelled = false;
+
+    /* تصنيف رفض play() — هنا كان العطل.
+       كان أي رفض يُسقط الفيديو نهائياً، و AbortError يقع روتينياً حين
+       يقاطع pause() (عند التمرير) نداءَ play() المعلّق. فكانت لمسة تمرير
+       واحدة على الجوال تكفي لإزالة الفيديو وترك صورة ساكنة لا تتحرك.
+       الآن: العابر يُتجاهَل ويُعاد، والمنع يطلب إيماءة، ولا شيء من هذا
+       يُسقط الفيديو. السقوط لا يكون إلا من حدث error حقيقي على العنصر. */
     const attempt = () => {
-      if (cancelled) return;
+      if (cancelled || !v.paused) return;
       const p = v.play();
-      // play() يعيد وعداً — رفضه الصامت هو ما كان يبدو «تجمّداً»
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {
-          if (!cancelled) setFailed(true);
-        });
-      }
+      if (!p || typeof p.catch !== "function") return;
+      p.then(() => {
+        if (!cancelled) setNeedsGesture(false);
+      }).catch((err) => {
+        if (cancelled) return;
+        const name = err && err.name;
+        if (name === "AbortError") return; // عابر: قاطعه pause أو تحميل جديد
+        if (name === "NotAllowedError") {
+          setNeedsGesture(true); // التشغيل التلقائي ممنوع: نعرض زر تشغيل
+          return;
+        }
+        // أي رفض آخر (NotSupportedError مثلاً) لا يعني بالضرورة موت المصدر،
+        // فنكتفي بطلب الإيماءة ولا نزيل العنصر.
+        setNeedsGesture(true);
+      });
     };
 
+    let inView = false;
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) attempt();
+          inView = e.isIntersecting;
+          if (inView) attempt();
           else if (!v.paused) v.pause();
         });
       },
@@ -145,22 +167,66 @@ export default function useHeroVideo({ videoRef, sectionRef, mode }) {
     );
     io.observe(section);
 
-    // استئناف بعد عودة اللسان إلى الواجهة، وبعد أول لمسة إن منع المتصفح التشغيل
+    /* المراقب لا يُطلق إلا عند تغيّر التقاطع. فإن توقف الفيديو لأي سبب آخر
+       وهو داخل الشاشة (مقاطعة، تبديل تطبيق، سياسة طاقة) فلا شيء يعيده،
+       ويبقى إطاراً ساكناً. هذا المستمع هو ما يستأنفه. */
+    const onPausedWhileVisible = () => {
+      if (cancelled || !inView || v.ended) return;
+      setTimeout(attempt, 120);
+    };
+    v.addEventListener("pause", onPausedWhileVisible);
+
+    // إعادة المحاولة عند كل نقطة يصير فيها التشغيل ممكناً
     const onVisible = () => {
       if (document.visibilityState === "visible") attempt();
     };
-    const onFirstTouch = () => attempt();
+    // إيماءة المستخدم تبقى مرصودة حتى يبدأ التشغيل فعلاً — لا { once: true }،
+    // فقد كانت اللمسة الوحيدة تُستهلك في نقرة عابرة ثم لا تعود أبداً.
+    const onGesture = () => attempt();
 
     document.addEventListener("visibilitychange", onVisible);
-    document.addEventListener("touchstart", onFirstTouch, { once: true, passive: true });
+    document.addEventListener("pointerdown", onGesture, { passive: true });
+    document.addEventListener("touchstart", onGesture, { passive: true });
+    v.addEventListener("canplay", attempt);
+    v.addEventListener("loadeddata", attempt);
 
     return () => {
       cancelled = true;
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisible);
-      document.removeEventListener("touchstart", onFirstTouch);
+      document.removeEventListener("pointerdown", onGesture);
+      document.removeEventListener("touchstart", onGesture);
+      v.removeEventListener("canplay", attempt);
+      v.removeEventListener("loadeddata", attempt);
+      v.removeEventListener("pause", onPausedWhileVisible);
     };
   }, [videoRef, sectionRef, effectiveMode, ready]);
+
+  /* ---------- رصد الحركة الحقيقية ---------- */
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return undefined;
+    const onPlaying = () => {
+      setPlaying(true);
+      setNeedsGesture(false);
+    };
+    const onPause = () => setPlaying(false);
+    v.addEventListener("playing", onPlaying);
+    v.addEventListener("pause", onPause);
+    return () => {
+      v.removeEventListener("playing", onPlaying);
+      v.removeEventListener("pause", onPause);
+    };
+  }, [videoRef, effectiveMode]);
+
+  /** يستدعيه زر «شغّل الفيديو» — داخل إيماءة مستخدم حقيقية */
+  const playByGesture = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    const p = v.play();
+    if (p && typeof p.catch === "function") p.catch(() => setNeedsGesture(true));
+  }, [videoRef]);
 
   /* ---------- وضع السحب: سطح المكتب ---------- */
   useEffect(() => {
@@ -258,5 +324,13 @@ export default function useHeroVideo({ videoRef, sectionRef, mode }) {
     };
   }, [videoRef, sectionRef, effectiveMode, ready]);
 
-  return { ready, failed, progress, mode: effectiveMode };
+  return {
+    ready,
+    failed,
+    progress,
+    playing,
+    needsGesture,
+    playByGesture,
+    mode: effectiveMode,
+  };
 }

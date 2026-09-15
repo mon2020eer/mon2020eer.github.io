@@ -38,6 +38,7 @@ export const HERO = {
   waMessage:
     "السلام عليكم، أرغب في ترتيب رحلة مع المسار المتحد. أفيدوني بالتفاصيل من فضلكم.",
   scrollCue: "اسحب للأسفل",
+  playVideo: "شغّل الفيديو",
 };
 
 export const STORY = {
