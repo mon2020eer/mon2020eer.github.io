@@ -317,39 +317,12 @@ export default function Header() {
           "fixed inset-x-0 top-0 z-drawer lg:hidden",
           "bg-panel shadow-lift",
           "border-b border-hairline",
-          "px-[clamp(1.15rem,4vw,4.5rem)] pb-8 pt-24",
+          "px-[clamp(1.15rem,4vw,4.5rem)] pb-8 pt-20",
           "transition-transform duration-500 ease-e1 motion-reduce:transition-none",
           isOpen ? "translate-y-0" : "-translate-y-full",
         ].join(" ")}
         style={{ visibility: isOpen ? "visible" : "hidden" }}
       >
-        {/* خيار إغلاق ظاهر ومُسمّى. زر القائمة في الترويسة يغلق أيضاً،
-            لكن المستخدم يحتاج أن يرى المخرج لا أن يستنتجه. */}
-        <div className="mb-2 flex justify-start border-b border-hairline pb-3">
-          <button
-            type="button"
-            onClick={() => {
-              close();
-              toggleRef.current?.focus();
-            }}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-[.95rem] font-semibold text-ink-2 transition-colors hover:bg-accent/10 hover:text-ink"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              className="h-5 w-5 flex-none"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.9"
-              strokeLinecap="round"
-            >
-              {/* خطان مائلان متقاطعان ممنوعان بقيد الهوية، فالإغلاق سهمٌ منحنٍ للأعلى */}
-              <path d="M5 15.5C8 10.5 16 10.5 19 15.5" />
-              <path d="M8.5 9.2 12 5.8l3.5 3.4" />
-            </svg>
-            {A11Y.closeMenu}
-          </button>
-        </div>
 
         <nav aria-label={A11Y.mainNav} className="flex flex-col gap-1">
           {NAV.map((item) => (
