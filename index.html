@@ -332,6 +332,11 @@ img,svg,video{display:block;max-width:100%}
   position:relative;min-height:100svh;display:flex;align-items:flex-end;
   background:var(--ink) center/cover no-repeat;overflow:hidden;
 }
+.static-hero .sh-video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 55%;
+  opacity:0;transition:opacity .8s var(--e1);
+}
+.static-hero .sh-video.playing{opacity:1}
 .static-hero .sh-scrim{
   position:absolute;inset:0;
   background:
@@ -735,6 +740,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
     <!-- البطل الثابت: تصميم مقصود للهواتف ولتقليل الحركة -->
     <div class="static-hero" id="staticHero">
       <div class="sh-stage" id="shStage">
+        <video class="sh-video" id="shVideo" muted playsinline webkit-playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video>
         <div class="sh-scrim" aria-hidden="true"></div>
         <div class="sh-in">
           <span class="kicker">المسار المتحد للخدمات السياحية</span>
@@ -1088,6 +1094,7 @@ var VIDEO_URL   = "assets/hero-scrub.mp4";
 var VIDEO_BYTES = 2034659;
 var POSTER_URL  = "assets/hero-poster.jpg";
 var ENDING_URL  = "assets/hero-ending.jpg";
+var MOBILE_VIDEO_URL = "assets/hero-mobile.mp4"; /* 960x540، بلا إطارات B، faststart، ~320KB */
 var RAMP_VH     = 18;   /* المنحدر المستهدف عند كل حافة مقطع، محسوب من المدى الفعلي */
 
 var hero    = document.getElementById("hero");
@@ -1098,6 +1105,7 @@ var ring    = document.getElementById("ring");
 var bandEls = Array.prototype.slice.call(document.querySelectorAll(".band"));
 var shStage = document.getElementById("shStage");
 var staticHero = document.getElementById("staticHero");
+var shVideo = document.getElementById("shVideo");
 
 var clamp = function(v,lo,hi){ return v<lo?lo:(v>hi?hi:v); };
 var smoothstep = function(p,e0,e1){
@@ -1327,11 +1335,37 @@ function initStaticOnce(){
   shStage.style.backgroundImage = "url('" + ENDING_URL + "')";
 }
 
+/* فيديو الهاتف: تشغيل تلقائي صامت مرة واحدة ثم يثبت على الإطار الأخير.
+   iOS وAndroid يسمحان بالتشغيل التلقائي فقط إذا كان الفيديو صامتاً و playsinline */
+var shVideoStarted = false;
+function startStaticVideo(){
+  if(!shVideo) return;
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var conn = navigator.connection;
+  if(conn && conn.saveData) return;
+  if(!shVideoStarted){
+    shVideoStarted = true;
+    shVideo.muted = true;
+    shVideo.defaultMuted = true;
+    shVideo.setAttribute("muted","");
+    shVideo.addEventListener("playing", function(){ shVideo.classList.add("playing"); });
+    shVideo.addEventListener("error", function(){ shVideo.classList.remove("playing"); });
+    shVideo.src = MOBILE_VIDEO_URL;
+  }
+  var pr = shVideo.play();
+  /* وضع توفير الطاقة في iOS يمنع التشغيل التلقائي: تبقى الصورة الثابتة كما هي */
+  if(pr && pr.catch) pr.catch(function(){});
+}
+function stopStaticVideo(){
+  if(shVideo && !shVideo.paused) shVideo.pause();
+}
+
 function enableScrub(){
   if(scrubOn) return;
   scrubOn = true;
   stage.style.display = "";
   staticHero.style.display = "none";
+  stopStaticVideo();
   initHeroOnce();
   window.addEventListener("scroll", onScroll, {passive:true});
   bands.forEach(function(b){ b.op = -1; b.k = -1; });
@@ -1349,6 +1383,7 @@ function disableScrub(){
   staticHero.style.display = "block";
   hero.style.height = "auto";
   initStaticOnce();
+  if(!shVideo || !shVideo.ended) startStaticVideo();
 }
 function applyHeroMode(){
   var staticMode = MQLS.some(function(m){ return m.matches; });
@@ -1670,6 +1705,7 @@ document.addEventListener("keydown", function(e){
 var rmq = matchMedia("(prefers-reduced-motion: reduce)");
 function pinToFinalStates(){
   document.documentElement.classList.add("rm-pin");
+  stopStaticVideo();
   if(routeLen){ routeDraw.style.strokeDashoffset = 0; }
   stopEls.forEach(function(s){ s.lit = true; s.el.classList.add("lit"); });
   uHolding = false;
