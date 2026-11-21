@@ -582,8 +582,8 @@ footer{background:var(--panel);border-top:1px solid var(--hairline);padding-bloc
 .foot{display:flex;flex-wrap:wrap;gap:2rem;justify-content:space-between;align-items:flex-start}
 .foot .brand svg{width:46px;height:46px}
 .foot small{display:block;color:var(--ink-2);font-size:.85rem;max-width:46ch;margin-top:1rem;line-height:1.7}
-.foot nav{display:flex;flex-direction:column;gap:.5rem}
-.foot nav a{font-size:.92rem;color:var(--ink-2);text-decoration:none;transition:color .3s var(--e1)}
+.foot nav{display:flex;flex-direction:column;gap:.15rem}
+.foot nav a{display:inline-flex;align-items:center;min-height:44px;font-size:.92rem;color:var(--ink-2);text-decoration:none;transition:color .3s var(--e1)}
 .foot nav a:hover{color:var(--accent-deep)}
 .legal{
   margin-top:2.8rem;padding-top:1.6rem;border-top:1px solid var(--hairline);
@@ -642,6 +642,27 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .rm-pin .route .draw{stroke-dashoffset:0 !important}
 .rm-pin .route .stop{fill:var(--accent);stroke:var(--accent)}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TravelAgency",
+  "name": "المسار المتحد للخدمات السياحية",
+  "alternateName": "Almasar Almuttahid",
+  "url": "https://amt.com.ly/",
+  "logo": "https://amt.com.ly/assets/logo.svg",
+  "image": "https://amt.com.ly/assets/hero-ending.jpg",
+  "description": "من طرابلس، نرتب رحلتك كاملة: التذكرة والإقامة وملف التأشيرة والاستقبال، من جهة واحدة وبسعر واحد تعرفه قبل أن تدفع.",
+  "telephone": "+218915057646",
+  "email": "info@amt.com.ly",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "طرابلس",
+    "addressCountry": "LY"
+  },
+  "areaServed": "LY",
+  "sameAs": ["https://www.facebook.com/ALMasarALMuttahid"]
+}
+</script>
 </head>
 <body>
 
@@ -1091,7 +1112,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
    1. الثوابت
    ============================================================ */
 var VIDEO_URL   = "assets/hero-scrub.mp4";
-var VIDEO_BYTES = 2034659;
+var VIDEO_BYTES = 1452335;
 var POSTER_URL  = "assets/hero-poster.jpg";
 var ENDING_URL  = "assets/hero-ending.jpg";
 var MOBILE_VIDEO_URL = "assets/hero-mobile.mp4"; /* 960x540، بلا إطارات B، faststart، ~320KB */
