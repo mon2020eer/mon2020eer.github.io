@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://amt.com.ly/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://amt.com.ly/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://amt.com.ly/en/"/>
+  </url>
+  <url>
+    <loc>https://amt.com.ly/en/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://amt.com.ly/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://amt.com.ly/en/"/>
+  </url>
+  <url><loc>https://amt.com.ly/destinations/istanbul/</loc><lastmod>2026-11-23</lastmod></url>
+  <url><loc>https://amt.com.ly/destinations/cairo/</loc><lastmod>2026-11-23</lastmod></url>
+  <url><loc>https://amt.com.ly/destinations/tunis/</loc><lastmod>2026-11-23</lastmod></url>
+  <url><loc>https://amt.com.ly/destinations/umrah/</loc><lastmod>2026-11-23</lastmod></url>
+  <url><loc>https://amt.com.ly/privacy.html</loc><lastmod>2026-11-23</lastmod></url>
+</urlset>
